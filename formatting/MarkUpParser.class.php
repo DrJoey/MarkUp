@@ -24,10 +24,7 @@ class MarkUpParser extends ContentFormattingParser
 		
 		foreach (static::$parsers as $parser)
 		{
-			foreach ($parser::$tags_to_save as $tag)
-			{
-				$this->content = $parser->save_tags($this->content, $tag);
-			}
+			$this->content = $parser->parse_save_tags($this->content);
 		}
 		
 		$this->protect_content();
@@ -51,14 +48,11 @@ class MarkUpParser extends ContentFormattingParser
 				$this->content = $parser->after_parse($this->content);
 			}
 		}
-		
-		
-	
-		parent::parse();
 
+		parent::parse();
 	}
 	
-	public function initParsers()
+	private function initParsers()
 	{
 		static::$parsers = array(
 			new MarkUpCodeParser(),
@@ -68,7 +62,7 @@ class MarkUpParser extends ContentFormattingParser
 		);
 	}
 	
-	protected function protect_content()
+	private function protect_content()
 	{
 		//Breaking the HTML code
 		$this->content = TextHelper::htmlspecialchars($this->content, ENT_NOQUOTES);
@@ -84,12 +78,13 @@ class MarkUpParser extends ContentFormattingParser
 			'?', '?',  '?', '?', '?', '?', '?', '?', '?'
 			);
 
-			$array_str_replace = array(
+		$array_str_replace = array(
 			'&#8364;', '&#8218;', '&#402;', '&#8222;', '&#8230;', '&#8224;', '&#8225;', '&#710;', '&#8240;',
 			'&#352;', '&#8249;', '&#338;', '&#381;', '&#8216;', '&#8217;', '&#8220;', '&#8221;', '&#8226;',
 			'&#8211;', '&#8212;', '&#732;', '&#8482;', '&#353;', '&#8250;', '&#339;', '&#382;', '&#376;'
 			);
-			$this->content = str_replace($array_str, $array_str_replace, $this->content);
+		
+		$this->content = str_replace($array_str, $array_str_replace, $this->content);
 	}
 	
 	protected function parse_paragraphs()

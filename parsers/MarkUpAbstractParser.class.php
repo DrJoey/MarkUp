@@ -3,7 +3,9 @@
 
 abstract class MarkUpAbstractParser
 {
-	public static $tags_to_save = array();
+	public static $parse_tags_to_save = array();
+	
+	public static $unparse_tags_to_save = array();
 	
 	protected $lang;
 	
@@ -15,6 +17,24 @@ abstract class MarkUpAbstractParser
 		$this->lang = $LANG;
 	}
 	
+	public function parse_save_tags($content)
+	{
+		foreach (static::$parse_tags_to_save as $pattern => $name)
+		{
+			$content = $this->save_tag($content, $pattern, $name);
+		}
+		return $content;
+	}
+	
+	public function restaure_tags($content)
+	{
+		foreach ($this->ecarted_tags as $key => $value)
+		{
+			$content = str_replace('&lt;{' . get_class($this) . '}&gt;' . $key . '&lt;{/' . get_class($this) . '}&gt;', $value, $content);
+		}
+		return $content;
+	}
+	
 	/**
 	 * Permet de parser des blocs imbriqués
 	 * 
@@ -22,6 +42,7 @@ abstract class MarkUpAbstractParser
 	 * @param	regex		Pattern complet de la regex
 	 * @param	string		Méthode de callback à lancer
 	 * @param	string		Contenu à parser
+	 * 
 	 * @return	string		Contenu Parsé
 	 */
 	protected function preg_imbricked_block($block_begin, $pattern, $callback, $content)
@@ -42,29 +63,22 @@ abstract class MarkUpAbstractParser
 	 * @param	string		Contenu à parser
 	 * @param	regex		Pattern du contenu à sauvegarder
 	 */
-	public function save_tags($content, $pattern)
+	protected function save_tag($content, $pattern, $name)
 	{
 		if (preg_match_all($pattern, $content, $matches))
 		{
-			
 			$i = 0;
 			foreach ($matches[0] as $occurence)
 			{
-				$this->ecarted_tags[$i] = $occurence;
-				$content = preg_replace($pattern, "\n" . '<{' . get_class($this) . '}>' . $i . '<{/' . get_class($this) . '}>' . "\n", $content, 1);
+				$index = $name . ':' . $i;
+				$this->ecarted_tags[$index] = $occurence;
+				$content = preg_replace($pattern, "\n" . '<{' . get_class($this) . '}>' . $name . ':' . $i . '<{/' . get_class($this) . '}>' . "\n", $content, 1);
 				$i++;
 			}
 		}
 		return $content;
 	}
 	
-	public function restaure_tags($content)
-	{
-		foreach ($this->ecarted_tags as $key => $value)
-		{
-			$content = str_replace('&lt;{' . get_class($this) . '}&gt;' . $key . '&lt;{/' . get_class($this) . '}&gt;', $value, $content);
-		}
-		return $content;
-	}
+	
 
 }
